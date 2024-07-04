@@ -1,0 +1,47 @@
+image:
+    name: hashicorp/terraform:latest
+    entrypoint:
+      - '/usr/bin/env'
+      - 'PATH=/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/bin:/bin:/bin:/bin:/bin:'
+
+
+before_script:
+    - terraform --version
+    - terraform init
+
+stages:
+  - Format and Validate
+  - Plan
+  - Apply
+  - Destroy
+
+
+Format and Validate:
+  stage: Format and Validate
+  script:
+      - terraform fmt
+      - terraform validate
+
+Plan:
+  stage: Plan
+  dependencies:
+    - Format and Validate
+  script:
+      - terraform plan -out="planfile"
+  artifacts:
+      paths:
+        - planfile
+
+Apply:
+    stage: Apply
+    dependencies:
+      - Plan
+    script:
+        - terraform apply -input=false "planfile"
+    when: manual
+
+Destroy:
+    stage: Destroy
+    script:
+        - terraform destroy -auto-approve
+    when: manual
